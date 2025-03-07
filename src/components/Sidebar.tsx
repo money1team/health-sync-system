@@ -33,7 +33,7 @@ const Sidebar = () => {
     },
     {
       name: 'Medical Records',
-      path: '/records',
+      path: '/medical-records',
       icon: <ClipboardList className="h-5 w-5" />,
     },
     {
