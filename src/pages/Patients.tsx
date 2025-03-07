@@ -26,7 +26,14 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
 import { MOCK_PATIENTS } from "@/lib/mock-data";
 import { PlusCircle, Search, MoreHorizontal, FileEdit, Trash2, Eye } from "lucide-react";
 import { Patient } from "@/lib/types";
@@ -58,6 +65,9 @@ const Patients = () => {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add New Patient</DialogTitle>
+              <DialogDescription>
+                Fill in the patient information below to create a new patient record.
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <p className="text-muted-foreground">Patient form will be displayed here</p>

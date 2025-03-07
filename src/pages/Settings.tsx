@@ -1,35 +1,35 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Tabs, 
   TabsContent, 
   TabsList, 
   TabsTrigger 
 } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { 
-  Form, 
-  FormControl, 
-  FormDescription, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { 
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { 
-  Bell, 
-  Lock, 
-  User, 
-  Palette, 
-  Shield 
-} from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, {
@@ -38,26 +38,100 @@ const profileFormSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
+  phone: z.string().min(10, {
+    message: "Phone number must be at least 10 characters.",
+  }),
 });
 
-const Settings = () => {
-  const [notifications, setNotifications] = useState({
-    appointments: true,
-    patientUpdates: true,
-    systemAlerts: false,
-  });
+const securityFormSchema = z.object({
+  currentPassword: z.string().min(8, {
+    message: "Password must be at least 8 characters.",
+  }),
+  newPassword: z.string().min(8, {
+    message: "Password must be at least 8 characters.",
+  }),
+  confirmPassword: z.string().min(8, {
+    message: "Password must be at least 8 characters.",
+  }),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "New password and confirm password must match.",
+  path: ["confirmPassword"],
+});
 
-  const form = useForm({
+const notificationItems = [
+  {
+    id: "appointments",
+    label: "Appointment reminders",
+  },
+  {
+    id: "patient-updates",
+    label: "Patient updates",
+  },
+  {
+    id: "system-updates",
+    label: "System updates",
+  },
+  {
+    id: "newsletters",
+    label: "Monthly newsletters",
+  },
+];
+
+const Settings = () => {
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("profile");
+  const [notificationMethods, setNotificationMethods] = useState({
+    email: true,
+    push: true,
+    sms: false,
+  });
+  
+  // Profile form
+  const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      name: "Dr. Jane Smith",
-      email: "jane.smith@healthsync.com",
+      name: "Dr. Sarah Kimani",
+      email: "sarah.kimani@example.com",
+      phone: "(+254) 711-222-333",
     },
   });
 
-  function onSubmit(values: z.infer<typeof profileFormSchema>) {
-    console.log(values);
-  }
+  // Security form
+  const securityForm = useForm<z.infer<typeof securityFormSchema>>({
+    resolver: zodResolver(securityFormSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
+
+  const onProfileSubmit = (data: z.infer<typeof profileFormSchema>) => {
+    toast({
+      title: "Profile updated",
+      description: "Your profile information has been updated successfully.",
+    });
+  };
+
+  const onSecuritySubmit = (data: z.infer<typeof securityFormSchema>) => {
+    toast({
+      title: "Password changed",
+      description: "Your password has been changed successfully.",
+    });
+    securityForm.reset();
+  };
+
+  const onNotificationChange = (method: "email" | "push" | "sms", checked: boolean) => {
+    setNotificationMethods((prev) => ({
+      ...prev,
+      [method]: checked,
+    }));
+    
+    toast({
+      title: `${method.charAt(0).toUpperCase() + method.slice(1)} notifications ${checked ? 'enabled' : 'disabled'}`,
+      description: `You will ${checked ? 'now' : 'no longer'} receive notifications via ${method}.`,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -67,178 +141,252 @@ const Settings = () => {
           Manage your account settings and preferences
         </p>
       </div>
-
-      <Tabs defaultValue="profile" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="profile" className="flex items-center">
-            <User className="mr-2 h-4 w-4" />
-            <span>Profile</span>
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center">
-            <Bell className="mr-2 h-4 w-4" />
-            <span>Notifications</span>
-          </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center">
-            <Lock className="mr-2 h-4 w-4" />
-            <span>Security</span>
-          </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center">
-            <Palette className="mr-2 h-4 w-4" />
-            <span>Appearance</span>
-          </TabsTrigger>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full sm:w-auto sm:inline-grid grid-cols-2 sm:grid-cols-4">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
         </TabsList>
-
+        
+        {/* Profile Tab */}
         <TabsContent value="profile">
           <Card>
             <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
+              <CardTitle>Profile</CardTitle>
+              <CardDescription>
+                Update your profile information
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <Form {...profileForm}>
+                <form id="profile-form" onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
                   <FormField
-                    control={form.control}
+                    control={profileForm.control}
                     name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Your name" {...field} />
+                          <Input {...field} />
                         </FormControl>
-                        <FormDescription>
-                          This is the name that will be displayed on your profile.
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                   <FormField
-                    control={form.control}
+                    control={profileForm.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="Your email" {...field} />
+                          <Input {...field} />
                         </FormControl>
-                        <FormDescription>
-                          We'll use this email to contact you.
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <Button type="submit">Save Changes</Button>
+                  <FormField
+                    control={profileForm.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </form>
               </Form>
             </CardContent>
+            <CardFooter>
+              <Button type="submit" form="profile-form">Save Changes</Button>
+            </CardFooter>
           </Card>
         </TabsContent>
-
+        
+        {/* Notifications Tab */}
         <TabsContent value="notifications">
           <Card>
             <CardHeader>
-              <CardTitle>Notification Settings</CardTitle>
+              <CardTitle>Notifications</CardTitle>
+              <CardDescription>
+                Configure how you receive notifications
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between space-x-2">
-                <Label htmlFor="appointments" className="flex flex-col space-y-1">
-                  <span>Appointment Notifications</span>
-                  <span className="text-sm font-normal text-muted-foreground">
-                    Receive notifications about upcoming appointments
-                  </span>
-                </Label>
-                <Switch
-                  id="appointments"
-                  checked={notifications.appointments}
-                  onCheckedChange={(checked) => setNotifications({ ...notifications, appointments: checked })}
-                />
-              </div>
-              <div className="flex items-center justify-between space-x-2">
-                <Label htmlFor="patients" className="flex flex-col space-y-1">
-                  <span>Patient Updates</span>
-                  <span className="text-sm font-normal text-muted-foreground">
-                    Receive notifications about patient updates
-                  </span>
-                </Label>
-                <Switch
-                  id="patients"
-                  checked={notifications.patientUpdates}
-                  onCheckedChange={(checked) => setNotifications({ ...notifications, patientUpdates: checked })}
-                />
-              </div>
-              <div className="flex items-center justify-between space-x-2">
-                <Label htmlFor="system" className="flex flex-col space-y-1">
-                  <span>System Alerts</span>
-                  <span className="text-sm font-normal text-muted-foreground">
-                    Receive notifications about system updates
-                  </span>
-                </Label>
-                <Switch
-                  id="system"
-                  checked={notifications.systemAlerts}
-                  onCheckedChange={(checked) => setNotifications({ ...notifications, systemAlerts: checked })}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="security">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="space-y-4">
-                <div className="flex flex-col space-y-2">
-                  <Label htmlFor="current-password">Current Password</Label>
-                  <Input id="current-password" type="password" />
-                </div>
-                <div className="flex flex-col space-y-2">
-                  <Label htmlFor="new-password">New Password</Label>
-                  <Input id="new-password" type="password" />
-                </div>
-                <div className="flex flex-col space-y-2">
-                  <Label htmlFor="confirm-password">Confirm New Password</Label>
-                  <Input id="confirm-password" type="password" />
-                </div>
-                <Button className="mt-2">Change Password</Button>
-              </div>
-              <div className="mt-6 pt-6 border-t">
-                <h3 className="text-lg font-medium flex items-center">
-                  <Shield className="mr-2 h-4 w-4" />
-                  Two-Factor Authentication
-                </h3>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Add an extra layer of security to your account by enabling two-factor authentication.
-                </p>
-                <Button variant="outline" className="mt-4">Enable 2FA</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="appearance">
-          <Card>
-            <CardHeader>
-              <CardTitle>Appearance Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium">Theme</h3>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Select your preferred theme for the application.
-                  </p>
-                  <div className="flex space-x-4 mt-4">
-                    <Button variant="outline" className="border-2 border-primary">Light</Button>
-                    <Button variant="outline">Dark</Button>
-                    <Button variant="outline">System</Button>
+                <h3 className="font-medium">Notification Methods</h3>
+                <div className="grid gap-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Email Notifications</p>
+                      <p className="text-sm text-muted-foreground">
+                        Receive notifications via email
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={notificationMethods.email} 
+                      onCheckedChange={(checked) => onNotificationChange("email", checked)} 
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Push Notifications</p>
+                      <p className="text-sm text-muted-foreground">
+                        Receive notifications via push notifications
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={notificationMethods.push} 
+                      onCheckedChange={(checked) => onNotificationChange("push", checked)} 
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">SMS Notifications</p>
+                      <p className="text-sm text-muted-foreground">
+                        Receive notifications via SMS
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={notificationMethods.sms} 
+                      onCheckedChange={(checked) => onNotificationChange("sms", checked)} 
+                    />
                   </div>
                 </div>
               </div>
+              
+              <div className="space-y-4">
+                <h3 className="font-medium">Notification Preferences</h3>
+                <div className="grid gap-2">
+                  {notificationItems.map((item) => (
+                    <div key={item.id} className="flex items-center space-x-2">
+                      <Checkbox id={item.id} defaultChecked={item.id !== "newsletters"} />
+                      <label
+                        htmlFor={item.id}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {item.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </CardContent>
+            <CardFooter>
+              <Button>Save Preferences</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        {/* Security Tab */}
+        <TabsContent value="security">
+          <Card>
+            <CardHeader>
+              <CardTitle>Security</CardTitle>
+              <CardDescription>
+                Update your password and security settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...securityForm}>
+                <form id="security-form" onSubmit={securityForm.handleSubmit(onSecuritySubmit)} className="space-y-4">
+                  <FormField
+                    control={securityForm.control}
+                    name="currentPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Current Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={securityForm.control}
+                    name="newPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>New Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={securityForm.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirm New Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </form>
+              </Form>
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" form="security-form">Change Password</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        {/* Appearance Tab */}
+        <TabsContent value="appearance">
+          <Card>
+            <CardHeader>
+              <CardTitle>Appearance</CardTitle>
+              <CardDescription>
+                Customize the application appearance
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="font-medium">Theme</h3>
+                <div className="flex flex-wrap gap-4">
+                  <Button variant="outline" className="flex-1">Light</Button>
+                  <Button variant="outline" className="flex-1">Dark</Button>
+                  <Button variant="outline" className="flex-1">System</Button>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="font-medium">Density</h3>
+                <div className="flex flex-wrap gap-4">
+                  <Button variant="outline" className="flex-1">Compact</Button>
+                  <Button variant="outline" className="flex-1">Comfortable</Button>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Animations</p>
+                    <p className="text-sm text-muted-foreground">
+                      Enable animations throughout the application
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button>Save Preferences</Button>
+            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
