@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Bell, Menu, User, Search } from 'lucide-react';
+import { Bell, Menu, User, Search, Calendar, ClipboardCheck, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -143,7 +143,7 @@ const Header = () => {
                   </div>
                   <div className="flex gap-2 rounded-lg p-2 hover:bg-muted cursor-pointer">
                     <div className="h-8 w-8 rounded-full bg-health-100 flex items-center justify-center">
-                      <ClipboardList className="h-4 w-4 text-health-500" />
+                      <ClipboardCheck className="h-4 w-4 text-health-500" />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm">Medical record updated</p>
