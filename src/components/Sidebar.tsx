@@ -18,27 +18,27 @@ const Sidebar = () => {
   const routes = [
     {
       name: 'Dashboard',
-      path: '/',
+      path: '/staff',
       icon: <LayoutDashboard className="h-5 w-5" />,
     },
     {
       name: 'Patients',
-      path: '/patients',
+      path: '/staff/patients',
       icon: <Users className="h-5 w-5" />,
     },
     {
       name: 'Appointments',
-      path: '/appointments',
+      path: '/staff/appointments',
       icon: <Calendar className="h-5 w-5" />,
     },
     {
       name: 'Medical Records',
-      path: '/medical-records',
+      path: '/staff/medical-records',
       icon: <ClipboardList className="h-5 w-5" />,
     },
     {
       name: 'Settings',
-      path: '/settings',
+      path: '/staff/settings',
       icon: <Settings className="h-5 w-5" />,
     },
   ];

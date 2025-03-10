@@ -66,9 +66,9 @@ const PatientSidebar = () => {
       
       <div className="mt-auto p-6">
         <Button variant="outline" className="w-full justify-start" asChild>
-          <Link to="/logout" className="text-sidebar-foreground">
+          <Link to="/staff" className="text-sidebar-foreground">
             <LogOut className="mr-2 h-4 w-4" />
-            Logout
+            Go to Staff Portal
           </Link>
         </Button>
       </div>
