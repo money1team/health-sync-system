@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Tabs, 
@@ -30,6 +29,8 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
+import { useTheme } from "@/contexts/ThemeContext";
+import { MoonIcon, SunIcon, LaptopIcon } from "lucide-react";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, {
@@ -85,8 +86,16 @@ const Settings = () => {
     push: true,
     sms: false,
   });
+  const [notificationPreferences, setNotificationPreferences] = useState({
+    appointments: true,
+    "patient-updates": true,
+    "system-updates": true,
+    newsletters: false,
+  });
+  const [animationsEnabled, setAnimationsEnabled] = useState(true);
+  const [density, setDensity] = useState<"compact" | "comfortable">("comfortable");
+  const { theme, setTheme } = useTheme();
   
-  // Profile form
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -96,7 +105,6 @@ const Settings = () => {
     },
   });
 
-  // Security form
   const securityForm = useForm<z.infer<typeof securityFormSchema>>({
     resolver: zodResolver(securityFormSchema),
     defaultValues: {
@@ -133,6 +141,56 @@ const Settings = () => {
     });
   };
 
+  const onNotificationPreferenceChange = (id: string, checked: boolean) => {
+    setNotificationPreferences(prev => ({
+      ...prev,
+      [id]: checked
+    }));
+
+    toast({
+      title: `Preference updated`,
+      description: `${checked ? 'Enabled' : 'Disabled'} notifications for ${id.replace('-', ' ')}.`,
+    });
+  };
+
+  const onThemeChange = (newTheme: "light" | "dark" | "system") => {
+    setTheme(newTheme);
+    toast({
+      title: "Appearance updated",
+      description: `Theme changed to ${newTheme}.`,
+    });
+  };
+
+  const onDensityChange = (newDensity: "compact" | "comfortable") => {
+    setDensity(newDensity);
+    toast({
+      title: "Density updated",
+      description: `UI density changed to ${newDensity}.`,
+    });
+  };
+
+  const onAnimationsChange = (enabled: boolean) => {
+    setAnimationsEnabled(enabled);
+    toast({
+      title: `Animations ${enabled ? 'enabled' : 'disabled'}`,
+      description: `UI animations have been ${enabled ? 'enabled' : 'disabled'}.`,
+    });
+  };
+
+  const onNotificationsSubmit = () => {
+    toast({
+      title: "Notification preferences saved",
+      description: "Your notification preferences have been updated successfully.",
+    });
+  };
+
+  const onAppearanceSubmit = () => {
+    toast({
+      title: "Appearance preferences saved",
+      description: "Your appearance preferences have been updated successfully.",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -150,7 +208,6 @@ const Settings = () => {
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
         </TabsList>
         
-        {/* Profile Tab */}
         <TabsContent value="profile">
           <Card>
             <CardHeader>
@@ -210,7 +267,6 @@ const Settings = () => {
           </Card>
         </TabsContent>
         
-        {/* Notifications Tab */}
         <TabsContent value="notifications">
           <Card>
             <CardHeader>
@@ -267,7 +323,13 @@ const Settings = () => {
                 <div className="grid gap-2">
                   {notificationItems.map((item) => (
                     <div key={item.id} className="flex items-center space-x-2">
-                      <Checkbox id={item.id} defaultChecked={item.id !== "newsletters"} />
+                      <Checkbox 
+                        id={item.id} 
+                        checked={notificationPreferences[item.id as keyof typeof notificationPreferences]} 
+                        onCheckedChange={(checked) => 
+                          onNotificationPreferenceChange(item.id, checked === true)
+                        }
+                      />
                       <label
                         htmlFor={item.id}
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -280,12 +342,11 @@ const Settings = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Save Preferences</Button>
+              <Button onClick={onNotificationsSubmit}>Save Preferences</Button>
             </CardFooter>
           </Card>
         </TabsContent>
         
-        {/* Security Tab */}
         <TabsContent value="security">
           <Card>
             <CardHeader>
@@ -345,7 +406,6 @@ const Settings = () => {
           </Card>
         </TabsContent>
         
-        {/* Appearance Tab */}
         <TabsContent value="appearance">
           <Card>
             <CardHeader>
@@ -358,17 +418,50 @@ const Settings = () => {
               <div className="space-y-4">
                 <h3 className="font-medium">Theme</h3>
                 <div className="flex flex-wrap gap-4">
-                  <Button variant="outline" className="flex-1">Light</Button>
-                  <Button variant="outline" className="flex-1">Dark</Button>
-                  <Button variant="outline" className="flex-1">System</Button>
+                  <Button 
+                    variant={theme === "light" ? "default" : "outline"} 
+                    className="flex-1 gap-2"
+                    onClick={() => onThemeChange("light")}
+                  >
+                    <SunIcon className="h-4 w-4" />
+                    Light
+                  </Button>
+                  <Button 
+                    variant={theme === "dark" ? "default" : "outline"} 
+                    className="flex-1 gap-2"
+                    onClick={() => onThemeChange("dark")}
+                  >
+                    <MoonIcon className="h-4 w-4" />
+                    Dark
+                  </Button>
+                  <Button 
+                    variant={theme === "system" ? "default" : "outline"} 
+                    className="flex-1 gap-2"
+                    onClick={() => onThemeChange("system")}
+                  >
+                    <LaptopIcon className="h-4 w-4" />
+                    System
+                  </Button>
                 </div>
               </div>
               
               <div className="space-y-4">
                 <h3 className="font-medium">Density</h3>
                 <div className="flex flex-wrap gap-4">
-                  <Button variant="outline" className="flex-1">Compact</Button>
-                  <Button variant="outline" className="flex-1">Comfortable</Button>
+                  <Button 
+                    variant={density === "compact" ? "default" : "outline"} 
+                    className="flex-1"
+                    onClick={() => onDensityChange("compact")}
+                  >
+                    Compact
+                  </Button>
+                  <Button 
+                    variant={density === "comfortable" ? "default" : "outline"} 
+                    className="flex-1"
+                    onClick={() => onDensityChange("comfortable")}
+                  >
+                    Comfortable
+                  </Button>
                 </div>
               </div>
               
@@ -380,12 +473,15 @@ const Settings = () => {
                       Enable animations throughout the application
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={animationsEnabled} 
+                    onCheckedChange={onAnimationsChange} 
+                  />
                 </div>
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Save Preferences</Button>
+              <Button onClick={onAppearanceSubmit}>Save Preferences</Button>
             </CardFooter>
           </Card>
         </TabsContent>
