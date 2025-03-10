@@ -10,9 +10,11 @@ import {
   HeartPulse 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 const PatientSidebar = () => {
   const location = useLocation();
+  const { user } = useAuth();
   
   const routes = [
     {
@@ -65,10 +67,16 @@ const PatientSidebar = () => {
       </div>
       
       <div className="mt-auto p-6">
+        {user && (
+          <div className="mb-4 px-3 py-2">
+            <p className="text-sm font-medium text-foreground">{user.name}</p>
+            <p className="text-xs text-muted-foreground">{user.email}</p>
+          </div>
+        )}
         <Button variant="outline" className="w-full justify-start" asChild>
-          <Link to="/staff" className="text-sidebar-foreground">
+          <Link to="/logout" className="text-sidebar-foreground">
             <LogOut className="mr-2 h-4 w-4" />
-            Go to Staff Portal
+            Logout
           </Link>
         </Button>
       </div>
