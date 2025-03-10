@@ -21,6 +21,13 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 
 const queryClient = new QueryClient();
 
+// Simple logout component that redirects to home
+const LogoutHandler = () => {
+  // Here you would implement any logout logic like clearing tokens
+  // For now we'll just redirect to the home page
+  return <Navigate to="/" replace />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -48,6 +55,9 @@ const App = () => (
               <Route path="profile" element={<PatientProfile />} />
               <Route path="*" element={<NotFound />} />
             </Route>
+            
+            {/* Logout Route */}
+            <Route path="/logout" element={<LogoutHandler />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
