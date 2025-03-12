@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { useState } from "react";
+import AppointmentBookingDialog from "@/components/AppointmentBookingDialog";
 
 const PatientAppointments = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -31,7 +33,10 @@ const PatientAppointments = () => {
                 className="rounded-md border"
               />
             </div>
-            <Button className="w-full mt-4">
+            <Button 
+              className="w-full mt-4"
+              onClick={() => setIsBookingOpen(true)}
+            >
               <CalendarIcon className="mr-2 h-4 w-4" />
               Book Appointment
             </Button>
@@ -71,6 +76,12 @@ const PatientAppointments = () => {
           </CardContent>
         </Card>
       </div>
+
+      <AppointmentBookingDialog
+        isOpen={isBookingOpen}
+        onClose={() => setIsBookingOpen(false)}
+        selectedDate={date}
+      />
     </div>
   );
 };
