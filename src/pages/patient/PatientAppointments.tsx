@@ -1,14 +1,49 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, RefreshCw, X } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { useState } from "react";
 import AppointmentBookingDialog from "@/components/AppointmentBookingDialog";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 const PatientAppointments = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const { toast } = useToast();
+
+  // Mock appointments data
+  const appointments = [
+    {
+      id: "1",
+      title: "General Checkup",
+      doctor: "Dr. Omondi",
+      date: "Tomorrow",
+      time: "9:00 AM"
+    },
+    {
+      id: "2",
+      title: "Dental Cleaning",
+      doctor: "Dr. Wanjiku",
+      date: "Next Week, Tuesday",
+      time: "2:00 PM"
+    }
+  ];
+
+  const handleReschedule = (id: string) => {
+    toast({
+      title: "Reschedule requested",
+      description: "Your request to reschedule this appointment has been sent."
+    });
+  };
+
+  const handleCancel = (id: string) => {
+    toast({
+      title: "Appointment cancelled",
+      description: "Your appointment has been cancelled successfully."
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -45,34 +80,50 @@ const PatientAppointments = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Upcoming Appointments</CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle>Upcoming Appointments</CardTitle>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <RefreshCw className="h-4 w-4" />
+                <span className="sr-only">Refresh</span>
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">General Checkup</p>
-                  <p className="text-sm text-muted-foreground">Tomorrow at 9:00 AM</p>
-                  <p className="text-sm text-muted-foreground">With Dr. Omondi</p>
-                </div>
-                <div className="space-x-2">
-                  <Button variant="outline" size="sm">Reschedule</Button>
-                  <Button variant="destructive" size="sm">Cancel</Button>
-                </div>
+            {appointments.length > 0 ? (
+              <div className="space-y-4">
+                {appointments.map((appointment) => (
+                  <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-md">
+                    <div>
+                      <p className="font-medium">{appointment.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {appointment.date} at {appointment.time}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{appointment.doctor}</p>
+                    </div>
+                    <div className="space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleReschedule(appointment.id)}
+                      >
+                        Reschedule
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => handleCancel(appointment.id)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Dental Cleaning</p>
-                  <p className="text-sm text-muted-foreground">Next Week, Tuesday at 2:00 PM</p>
-                  <p className="text-sm text-muted-foreground">With Dr. Wanjiku</p>
-                </div>
-                <div className="space-x-2">
-                  <Button variant="outline" size="sm">Reschedule</Button>
-                  <Button variant="destructive" size="sm">Cancel</Button>
-                </div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-muted-foreground">No upcoming appointments</p>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

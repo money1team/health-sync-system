@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 import { 
   PlusCircle, 
   Search, 
@@ -44,6 +45,7 @@ import {
 import { MOCK_APPOINTMENTS, getPatientById, getDoctorById } from "@/lib/mock-data";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
+import AppointmentCreationDialog from "@/components/AppointmentCreationDialog";
 
 // Get status color for badge
 const getStatusColor = (status: string) => {
@@ -64,6 +66,8 @@ const getStatusColor = (status: string) => {
 const Appointments = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [date, setDate] = useState<Date | undefined>(undefined);
+  const [isCreationDialogOpen, setIsCreationDialogOpen] = useState(false);
+  const { toast } = useToast();
   
   // Filter appointments based on search query and selected date
   const filteredAppointments = MOCK_APPOINTMENTS.filter((appointment) => {
@@ -83,6 +87,13 @@ const Appointments = () => {
     return matchesSearch && matchesDate;
   });
 
+  const handleStatusChange = (appointmentId: string, newStatus: string) => {
+    toast({
+      title: "Appointment Updated",
+      description: `Appointment status changed to ${newStatus}`,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
@@ -92,7 +103,7 @@ const Appointments = () => {
             Manage and schedule patient appointments
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setIsCreationDialogOpen(true)}>
           <PlusCircle className="mr-2 h-4 w-4" />
           New Appointment
         </Button>
@@ -223,7 +234,7 @@ const Appointments = () => {
                                 <CalendarClock className="mr-2 h-4 w-4" />
                                 Reschedule
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleStatusChange(appointment.id, "Completed")}>
                                 <CheckCircle className="mr-2 h-4 w-4" />
                                 Mark as Completed
                               </DropdownMenuItem>
@@ -231,7 +242,10 @@ const Appointments = () => {
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit Details
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive">
+                              <DropdownMenuItem 
+                                className="text-destructive"
+                                onClick={() => handleStatusChange(appointment.id, "Cancelled")}
+                              >
                                 <XCircle className="mr-2 h-4 w-4" />
                                 Cancel Appointment
                               </DropdownMenuItem>
@@ -280,6 +294,17 @@ const Appointments = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      <AppointmentCreationDialog 
+        isOpen={isCreationDialogOpen}
+        onClose={() => setIsCreationDialogOpen(false)}
+        onSuccess={() => {
+          toast({
+            title: "Success",
+            description: "Appointment has been scheduled successfully",
+          });
+        }}
+      />
     </div>
   );
 };
