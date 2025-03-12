@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -28,7 +27,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -40,14 +39,16 @@ import {
   Edit, 
   CalendarClock,
   Calendar as CalendarIcon,
-  ChevronDown
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { MOCK_APPOINTMENTS, getPatientById, getDoctorById } from "@/lib/mock-data";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import AppointmentCreationDialog from "@/components/AppointmentCreationDialog";
+import { Appointment } from "@/lib/types";
 
-// Get status color for badge
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'Scheduled':
@@ -67,9 +68,9 @@ const Appointments = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [isCreationDialogOpen, setIsCreationDialogOpen] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const { toast } = useToast();
   
-  // Filter appointments based on search query and selected date
   const filteredAppointments = MOCK_APPOINTMENTS.filter((appointment) => {
     const patient = getPatientById(appointment.patientId);
     const doctor = getDoctorById(appointment.doctorId);
@@ -93,6 +94,33 @@ const Appointments = () => {
       description: `Appointment status changed to ${newStatus}`,
     });
   };
+
+  const getAppointmentsForDay = (day: Date): Appointment[] => {
+    const dateString = format(day, 'yyyy-MM-dd');
+    return MOCK_APPOINTMENTS.filter(appointment => appointment.date === dateString);
+  };
+
+  const nextMonth = () => {
+    setCurrentMonth(addMonths(currentMonth, 1));
+  };
+
+  const prevMonth = () => {
+    setCurrentMonth(subMonths(currentMonth, 1));
+  };
+
+  const CalendarHeader = () => (
+    <div className="flex items-center justify-between px-2 py-4">
+      <h3 className="font-semibold">{format(currentMonth, 'MMMM yyyy')}</h3>
+      <div className="flex space-x-2">
+        <Button variant="outline" size="icon" onClick={prevMonth}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button variant="outline" size="icon" onClick={nextMonth}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -282,12 +310,70 @@ const Appointments = () => {
         
         <TabsContent value="calendar">
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-center py-10">
-                <div className="text-center">
-                  <CalendarIcon className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-                  <p className="mb-2">Calendar view will be displayed here</p>
-                  <p className="text-sm text-muted-foreground">Coming soon in a future update</p>
+            <CardHeader>
+              <CardTitle>Appointments Calendar</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="border rounded-md overflow-hidden">
+                <CalendarHeader />
+                <div className="grid grid-cols-7 gap-0">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                    <div 
+                      key={day} 
+                      className="text-center p-2 font-medium text-sm text-muted-foreground border-b"
+                    >
+                      {day}
+                    </div>
+                  ))}
+                  
+                  {eachDayOfInterval({
+                    start: startOfWeek(startOfMonth(currentMonth)),
+                    end: endOfWeek(endOfMonth(currentMonth))
+                  }).map((day) => {
+                    const dayAppointments = getAppointmentsForDay(day);
+                    const isCurrentMonth = isSameMonth(day, currentMonth);
+                    const isToday = isSameDay(day, new Date());
+                    
+                    return (
+                      <div 
+                        key={day.toString()}
+                        className={cn(
+                          "min-h-[100px] p-1 border hover:bg-accent/20 transition-colors",
+                          !isCurrentMonth && "bg-muted/20 text-muted-foreground",
+                          isToday && "bg-accent/10"
+                        )}
+                        onClick={() => {
+                          setDate(day);
+                          setIsCreationDialogOpen(true);
+                        }}
+                      >
+                        <div className="flex flex-col h-full">
+                          <div className={cn(
+                            "self-end h-6 w-6 rounded-full flex items-center justify-center text-xs mb-1",
+                            isToday && "bg-primary text-primary-foreground font-semibold"
+                          )}>
+                            {format(day, 'd')}
+                          </div>
+                          <div className="flex-1 overflow-y-auto">
+                            {dayAppointments.slice(0, 3).map((apt, i) => (
+                              <div 
+                                key={i}
+                                className="text-xs p-1 mb-1 rounded truncate bg-accent/30 border-l-2 border-primary"
+                                title={`${getPatientById(apt.patientId)?.name} - ${apt.reason}`}
+                              >
+                                {getPatientById(apt.patientId)?.name?.split(' ')[0]} - {apt.time}
+                              </div>
+                            ))}
+                            {dayAppointments.length > 3 && (
+                              <div className="text-xs text-muted-foreground p-1">
+                                +{dayAppointments.length - 3} more
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </CardContent>
