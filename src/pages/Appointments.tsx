@@ -48,6 +48,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import AppointmentCreationDialog from "@/components/AppointmentCreationDialog";
 import { Appointment } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const getStatusColor = (status: string) => {
   switch (status) {
