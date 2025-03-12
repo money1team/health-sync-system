@@ -130,7 +130,7 @@ const AppointmentCreationDialog = ({ isOpen, onClose, onSuccess }: AppointmentCr
                     <SelectContent>
                       {MOCK_DOCTORS.map((doctor) => (
                         <SelectItem key={doctor.id} value={doctor.id}>
-                          {doctor.name} - {doctor.specialization}
+                          {doctor.name} - {doctor.specialty}
                         </SelectItem>
                       ))}
                     </SelectContent>
