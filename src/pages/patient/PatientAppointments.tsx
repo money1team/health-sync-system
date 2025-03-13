@@ -159,6 +159,7 @@ const PatientAppointments = () => {
         isOpen={isBookingOpen}
         onClose={handleCloseDialog}
         selectedDate={date}
+        appointmentId={selectedAppointmentId}
       />
     </div>
   );

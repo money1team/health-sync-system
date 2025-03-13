@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -21,18 +21,36 @@ interface AppointmentBookingDialogProps {
   isOpen: boolean;
   onClose: () => void;
   selectedDate: Date | undefined;
+  appointmentId?: string | null;
 }
 
 const AppointmentBookingDialog = ({
   isOpen,
   onClose,
   selectedDate,
+  appointmentId,
 }: AppointmentBookingDialogProps) => {
   const { toast } = useToast();
   const [doctorId, setDoctorId] = useState("");
   const [time, setTime] = useState("");
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Reset form when dialog opens for a new appointment
+  useEffect(() => {
+    if (isOpen) {
+      if (!appointmentId) {
+        // New appointment - reset form
+        resetForm();
+      } else {
+        // Rescheduling - could pre-fill form based on appointment ID
+        // In a real app, you would fetch the appointment details
+        setDoctorId(MOCK_DOCTORS[0].id); // Just setting a default for demo
+        setTime("10:00 AM");
+        setReason("Follow-up appointment");
+      }
+    }
+  }, [isOpen, appointmentId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,9 +68,13 @@ const AppointmentBookingDialog = ({
     
     // Simulate API call
     setTimeout(() => {
+      let successMessage = appointmentId 
+        ? "Your appointment has been rescheduled" 
+        : "Your appointment has been scheduled";
+        
       toast({
-        title: "Appointment booked",
-        description: `Your appointment has been scheduled for ${format(selectedDate, "PPP")} at ${time}`,
+        title: appointmentId ? "Appointment rescheduled" : "Appointment booked",
+        description: `${successMessage} for ${format(selectedDate, "PPP")} at ${time}`,
       });
       setIsSubmitting(false);
       resetForm();
@@ -70,10 +92,10 @@ const AppointmentBookingDialog = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Book New Appointment</DialogTitle>
+          <DialogTitle>{appointmentId ? "Reschedule Appointment" : "Book New Appointment"}</DialogTitle>
           <DialogDescription>
             {selectedDate 
-              ? `Booking for ${format(selectedDate, "PPP")}` 
+              ? `${appointmentId ? "Rescheduling" : "Booking"} for ${format(selectedDate, "PPP")}` 
               : "Select a date to book your appointment"}
           </DialogDescription>
         </DialogHeader>
@@ -135,7 +157,10 @@ const AppointmentBookingDialog = ({
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Booking..." : "Book Appointment"}
+              {isSubmitting ? 
+                (appointmentId ? "Rescheduling..." : "Booking...") : 
+                (appointmentId ? "Reschedule Appointment" : "Book Appointment")
+              }
             </Button>
           </DialogFooter>
         </form>
