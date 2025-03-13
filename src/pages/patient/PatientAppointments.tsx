@@ -32,6 +32,7 @@ const PatientAppointments = () => {
   ];
 
   const handleReschedule = (id: string) => {
+    setIsBookingOpen(true);
     toast({
       title: "Reschedule requested",
       description: "Your request to reschedule this appointment has been sent."
@@ -39,9 +40,18 @@ const PatientAppointments = () => {
   };
 
   const handleCancel = (id: string) => {
+    // Find and remove the appointment from the list in a real application
     toast({
       title: "Appointment cancelled",
       description: "Your appointment has been cancelled successfully."
+    });
+  };
+
+  const handleRefresh = () => {
+    // In a real app, this would fetch the latest appointments
+    toast({
+      title: "Refreshed",
+      description: "Your appointments have been refreshed."
     });
   };
 
@@ -64,7 +74,7 @@ const PatientAppointments = () => {
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={setDate}
+                onSelect={(newDate) => setDate(newDate)}
                 className="rounded-md border"
               />
             </div>
@@ -82,7 +92,12 @@ const PatientAppointments = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Upcoming Appointments</CardTitle>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 w-8 p-0"
+                onClick={handleRefresh}
+              >
                 <RefreshCw className="h-4 w-4" />
                 <span className="sr-only">Refresh</span>
               </Button>
