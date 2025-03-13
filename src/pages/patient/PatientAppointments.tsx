@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 const PatientAppointments = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Mock appointments data
@@ -32,6 +33,7 @@ const PatientAppointments = () => {
   ];
 
   const handleReschedule = (id: string) => {
+    setSelectedAppointmentId(id);
     setIsBookingOpen(true);
     toast({
       title: "Reschedule requested",
@@ -53,6 +55,16 @@ const PatientAppointments = () => {
       title: "Refreshed",
       description: "Your appointments have been refreshed."
     });
+  };
+
+  const handleBooking = () => {
+    setSelectedAppointmentId(null); // Ensure we're creating a new appointment, not rescheduling
+    setIsBookingOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsBookingOpen(false);
+    setSelectedAppointmentId(null);
   };
 
   return (
@@ -80,7 +92,7 @@ const PatientAppointments = () => {
             </div>
             <Button 
               className="w-full mt-4"
-              onClick={() => setIsBookingOpen(true)}
+              onClick={handleBooking}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               Book Appointment
@@ -145,7 +157,7 @@ const PatientAppointments = () => {
 
       <AppointmentBookingDialog
         isOpen={isBookingOpen}
-        onClose={() => setIsBookingOpen(false)}
+        onClose={handleCloseDialog}
         selectedDate={date}
       />
     </div>
