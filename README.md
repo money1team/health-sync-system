@@ -14,12 +14,11 @@ Individuals tracking their personal health and fitness data
 Healthcare providers managing patient records and care plans
 Organizations conducting health research or managing wellness programs
 This project embraces modular architecture, extensibility, and best practices in data security to ensure a trustworthy and scalable solution for modern healthcare needs.
-Simply visit the [Lovable Project](https://lovable.dev/projects/54af8e96-2358-4cb4-b00a-3f6bfd9f6e45) and start prompting.
 
 
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+If you want to work locally using your own IDE, you can clone this repo and push changes.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
